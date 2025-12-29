@@ -3,7 +3,11 @@ package com.backmo.scheduleassistant.ui.event;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -20,8 +24,11 @@ import com.backmo.scheduleassistant.R;
 import com.backmo.scheduleassistant.data.ScheduleRepository;
 import com.backmo.scheduleassistant.data.db.EventEntity;
 import com.backmo.scheduleassistant.reminder.EventReminderWorker;
+import com.backmo.scheduleassistant.util.TimeParser;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class EventEditActivity extends AppCompatActivity {
@@ -33,10 +40,15 @@ public class EventEditActivity extends AppCompatActivity {
     private RadioGroup rgChannel;
     private EditText etLocation;
     private EditText etNotes;
+    private boolean isTimeAutoSet = false;
+    private TextWatcher titleTextWatcher;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable parseTimeRunnable;
 
     private final Calendar startCal = Calendar.getInstance();
     private final Calendar endCal = Calendar.getInstance();
     private ScheduleRepository repository;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,22 +70,141 @@ public class EventEditActivity extends AppCompatActivity {
         updateTimeButtons();
         preloadIfEditing();
 
+        // 初始化时间解析相关
+        isTimeAutoSet = false;
+
+        // 添加标题文本监听器
+        etTitle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 取消之前的解析任务
+                if (parseTimeRunnable != null) {
+                    handler.removeCallbacks(parseTimeRunnable);
+                }
+
+                // 延迟500ms后执行解析，避免频繁触发
+                parseTimeRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        String text = s.toString().trim();
+                        if (!text.isEmpty() && !isTimeAutoSet) {
+                            parseAndSetTimeFromTitle(text);
+                        }
+                    }
+                };
+                handler.postDelayed(parseTimeRunnable, 500);
+            }
+        });
+
+        // 初始化TextWatcher
+        titleTextWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 取消之前的解析任务
+                if (parseTimeRunnable != null) {
+                    handler.removeCallbacks(parseTimeRunnable);
+                }
+
+                // 延迟500ms后执行解析，避免频繁触发
+                parseTimeRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        String text = s.toString().trim();
+                        if (!text.isEmpty() && !isTimeAutoSet) {
+                            parseAndSetTimeFromTitle(text);
+                        }
+                    }
+                };
+                handler.postDelayed(parseTimeRunnable, 500);
+            }
+        };
+
+        // 添加监听器
+        etTitle.addTextChangedListener(titleTextWatcher);
+
         swAllDay.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 setAllDayBounds();
             }
             updateTimeButtons();
         });
-        btnStart.setOnClickListener(v -> pickDateTime(startCal, () -> {
-            if (endCal.before(startCal)) {
-                endCal.setTimeInMillis(startCal.getTimeInMillis() + 60 * 60 * 1000);
-            }
-            updateTimeButtons();
-        }));
-        btnEnd.setOnClickListener(v -> pickDateTime(endCal, this::updateTimeButtons));
+        btnStart.setOnClickListener(v -> {
+            isTimeAutoSet = false; // 用户手动选择，取消自动设置标记
+            pickDateTime(startCal, () -> {
+                if (endCal.before(startCal)) {
+                    endCal.setTimeInMillis(startCal.getTimeInMillis() + 60 * 60 * 1000);
+                }
+                updateTimeButtons();
+            });
+        });
+
+        btnEnd.setOnClickListener(v -> {
+            isTimeAutoSet = false; // 用户手动选择，取消自动设置标记
+            pickDateTime(endCal, this::updateTimeButtons);
+        });
 
         btnCancel.setOnClickListener(v -> finish());
         btnSave.setOnClickListener(v -> saveEvent());
+    }
+    /**
+     * 从标题中解析时间并设置
+     */
+    private void parseAndSetTimeFromTitle(String input) {
+        // 如果标题已经被清空，不进行解析
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        TimeParser.ParsedTime parsedTime = TimeParser.parseChineseTime(input);
+
+        if (parsedTime != null && parsedTime.remainingTitle != null) {
+            // 标记时间已被自动设置
+            isTimeAutoSet = true;
+
+            // 更新开始时间
+            startCal.setTimeInMillis(parsedTime.startTime.getTimeInMillis());
+
+            // 更新结束时间
+            endCal.setTimeInMillis(parsedTime.endTime.getTimeInMillis());
+
+            // 更新界面显示
+            updateTimeButtons();
+
+            // 清理标题中的时间文本
+            String cleanedTitle = parsedTime.remainingTitle.trim();
+            if (!cleanedTitle.isEmpty() && !cleanedTitle.equals(input)) {
+                // 移除监听器避免循环
+                etTitle.removeTextChangedListener(titleTextWatcher);
+
+                etTitle.setText(cleanedTitle);
+                etTitle.setSelection(cleanedTitle.length());
+
+                // 重新添加监听器
+                etTitle.addTextChangedListener(titleTextWatcher);
+            }
+
+            // 显示提示
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            String message = String.format("已识别时间: %s - %s",
+                    sdf.format(parsedTime.startTime.getTime()),
+                    sdf.format(parsedTime.endTime.getTime()));
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+            // 3秒后重置标记，允许用户手动修改
+            new Handler().postDelayed(() -> isTimeAutoSet = false, 3000);
+        }
     }
 
     private void preloadIfEditing() {
@@ -166,6 +297,7 @@ public class EventEditActivity extends AppCompatActivity {
     }
 
     private void saveEvent() {
+        isTimeAutoSet = false; // 保存时重置标记
         String title = etTitle.getText().toString().trim();
         if (TextUtils.isEmpty(title)) {
             Toast.makeText(this, "请填写标题", Toast.LENGTH_SHORT).show();
