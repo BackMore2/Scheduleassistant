@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,7 @@ import android.text.TextUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -76,6 +78,43 @@ public class CalendarFragment extends Fragment {
             i.putExtra(com.backmo.scheduleassistant.ui.event.EventDetailActivity.EXTRA_ALLDAY, e.allDay);
             i.putExtra(com.backmo.scheduleassistant.ui.event.EventDetailActivity.EXTRA_LOCATION, e.location);
             startActivity(i);
+        }, new OnEventSelectListener() {
+            @Override
+            public void onEventSelect(EventEntity event, boolean isSelected) {
+                // 为习惯事件生成唯一标识
+                String eventKey = getEventKey(event);
+                if (isSelected) {
+                    // 保存事件的完整信息
+                    selectedEventMap.put(eventKey, event);
+                } else {
+                    // 移除事件
+                    selectedEventMap.remove(eventKey);
+                }
+                updateShareCount();
+            }
+            
+            @Override
+            public boolean isSharingMode() {
+                return CalendarFragment.this.isSharingMode;
+            }
+            
+            @Override
+            public boolean isEventSelected(EventEntity event) {
+                // 使用事件的唯一标识来检查是否被选中
+                String eventKey = getEventKey(event);
+                return selectedEventMap.containsKey(eventKey);
+            }
+            
+            // 生成事件的唯一标识
+            private String getEventKey(EventEntity event) {
+                // 如果是习惯事件，使用习惯ID作为标识
+                if ("习惯".equals(event.category) && event.notes != null && event.notes.startsWith("HABIT-")) {
+                    return event.notes; // 使用 HABIT-xxx 作为唯一标识
+                } else {
+                    // 否则使用事件ID作为标识
+                    return String.valueOf(event.id);
+                }
+            }
         }));
         repository.getAllHabits().observe(getViewLifecycleOwner(), habits -> {
             currentHabits.clear();
@@ -91,6 +130,46 @@ public class CalendarFragment extends Fragment {
         updateMonthLabel();
         loadMonthIndicators(dayAdapter);
         loadEventsForSelected();
+        
+        // 初始化分享底部栏
+        shareBottomBar = root.findViewById(R.id.share_bottom_bar);
+        tvSelectAll = root.findViewById(R.id.tv_select_all);
+        tvShareCount = root.findViewById(R.id.tv_share_count);
+        btnExport = root.findViewById(R.id.btn_export);
+        View btnCancel = root.findViewById(R.id.btn_cancel);
+        
+        tvSelectAll.setOnClickListener(v -> {
+            // 检查当前页面的事件是否全部被选中
+            boolean allSelected = true;
+            for (EventEntity event : currentEvents) {
+                String eventKey = getEventKey(event);
+                if (!selectedEventMap.containsKey(eventKey)) {
+                    allSelected = false;
+                    break;
+                }
+            }
+            
+            if (allSelected) {
+                // 取消全选当前页面的事件
+                for (EventEntity event : currentEvents) {
+                    String eventKey = getEventKey(event);
+                    selectedEventMap.remove(eventKey);
+                }
+            } else {
+                // 全选当前页面的事件
+                for (EventEntity event : currentEvents) {
+                    String eventKey = getEventKey(event);
+                    selectedEventMap.put(eventKey, event);
+                }
+            }
+            updateShareCount();
+            eventList.getAdapter().notifyDataSetChanged();
+        });
+        
+        btnExport.setOnClickListener(v -> exportSelectedEvents());
+        
+        btnCancel.setOnClickListener(v -> exitSharingMode());
+        
         return root;
     }
 
@@ -161,6 +240,24 @@ public class CalendarFragment extends Fragment {
         dp.show();
     }
 
+    private boolean isSharingMode = false;
+    private final java.util.HashMap<String, EventEntity> selectedEventMap = new java.util.HashMap<>();
+    private View shareBottomBar;
+    private TextView tvSelectAll;
+    private TextView tvShareCount;
+    private View btnExport;
+    
+    // 生成事件的唯一标识
+    private String getEventKey(EventEntity event) {
+        // 如果是习惯事件，使用习惯ID作为标识
+        if ("习惯".equals(event.category) && event.notes != null && event.notes.startsWith("HABIT-")) {
+            return event.notes; // 使用 HABIT-xxx 作为唯一标识
+        } else {
+            // 否则使用事件ID作为标识
+            return String.valueOf(event.id);
+        }
+    }
+    
     private void showToolsSheet() {
         com.google.android.material.bottomsheet.BottomSheetDialog dialog = new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext());
         View content = LayoutInflater.from(requireContext()).inflate(R.layout.bottom_sheet_tools, null);
@@ -189,9 +286,107 @@ public class CalendarFragment extends Fragment {
             android.content.Intent i = new android.content.Intent(requireContext(), com.backmo.scheduleassistant.ui.event.EventListActivity.class);
             startActivity(i);
         });
+        content.findViewById(R.id.btn_share).setOnClickListener(v -> {
+            dialog.dismiss();
+            enterSharingMode();
+        });
         dialog.show();
     }
 
+    private void enterSharingMode() {
+        isSharingMode = true;
+        shareBottomBar.setVisibility(View.VISIBLE);
+        selectedEventMap.clear();
+        updateShareCount();
+        eventList.getAdapter().notifyDataSetChanged();
+    }
+    
+    private void exitSharingMode() {
+        isSharingMode = false;
+        shareBottomBar.setVisibility(View.GONE);
+        selectedEventMap.clear();
+        eventList.getAdapter().notifyDataSetChanged();
+    }
+    
+    private void updateShareCount() {
+        tvShareCount.setText("已选 " + selectedEventMap.size() + " 项");
+    }
+    
+    private void exportSelectedEvents() {
+        if (selectedEventMap.isEmpty()) {
+            android.widget.Toast.makeText(requireContext(), "请选择要分享的日程", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // 显示确认对话框
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("确认是否分享")
+            .setPositiveButton("确认", (dialog, which) -> {
+                // 复制到剪贴板
+                StringBuilder sb = new StringBuilder();
+                SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                
+                // 遍历所有选中的事件，无论它们属于哪个日期
+                for (EventEntity event : selectedEventMap.values()) {
+                    // 日期
+                    sb.append("日期: ").append(dateFmt.format(new Date(event.startAt))).append("\n");
+                    
+                    // 时间
+                    if (event.allDay) {
+                        sb.append("时间: 全天\n");
+                    } else {
+                        sb.append("时间: ")
+                          .append(timeFmt.format(new Date(event.startAt)))
+                          .append(" - ")
+                          .append(timeFmt.format(new Date(event.endAt)))
+                          .append("\n");
+                    }
+                    
+                    // 标题
+                    sb.append("标题: ").append(event.title).append("\n");
+                    
+                    // 提醒
+                    if (event.remindOffsetMinutes > 0) {
+                        sb.append("提醒: ").append(event.remindOffsetMinutes).append("分钟\n");
+                    }
+                    
+                    // 提醒方式
+                    String remindType = "通知提醒";
+                    if ("alarm".equals(event.remindChannel)) {
+                        remindType = "闹钟提醒";
+                    }
+                    sb.append("提醒方式: ").append(remindType).append("\n");
+                    
+                    // 地点
+                    if (!TextUtils.isEmpty(event.location)) {
+                        sb.append("地点: ").append(event.location).append("\n");
+                    } else {
+                        sb.append("地点: 无\n");
+                    }
+                    
+                    // 备注
+                    if (!TextUtils.isEmpty(event.notes)) {
+                        sb.append("备注: ").append(event.notes).append("\n");
+                    } else {
+                        sb.append("备注: 无\n");
+                    }
+                    
+                    // 每个日程之间用空行分隔
+                    sb.append("\n");
+                }
+                
+                android.content.ClipboardManager cm = (android.content.ClipboardManager) requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                android.content.ClipData cd = android.content.ClipData.newPlainText("日程", sb.toString().trim());
+                cm.setPrimaryClip(cd);
+                
+                android.widget.Toast.makeText(requireContext(), "已复制到剪贴板", android.widget.Toast.LENGTH_SHORT).show();
+                exitSharingMode();
+            })
+            .setNegativeButton("取消", null)
+            .show();
+    }
+    
     private void renderCombined() {
         List<com.backmo.scheduleassistant.data.db.EventEntity> merged = new java.util.ArrayList<>(currentEvents);
         for (com.backmo.scheduleassistant.data.db.HabitEntity h : currentHabits) {
@@ -351,14 +546,22 @@ public class CalendarFragment extends Fragment {
         void onDayClicked(int day);
     }
 
+    private interface OnEventSelectListener {
+        void onEventSelect(EventEntity event, boolean isSelected);
+        boolean isSharingMode();
+        boolean isEventSelected(EventEntity event);
+    }
+
     private static class EventAdapter extends RecyclerView.Adapter<EventViewHolder> {
         private final List<EventEntity> items;
         private final OnEventClickListener listener;
+        private final OnEventSelectListener selectListener;
         private final java.util.HashSet<Integer> expanded = new java.util.HashSet<>();
 
-        EventAdapter(List<EventEntity> items, OnEventClickListener listener) {
+        EventAdapter(List<EventEntity> items, OnEventClickListener listener, OnEventSelectListener selectListener) {
             this.items = items;
             this.listener = listener;
+            this.selectListener = selectListener;
         }
 
         void setItems(List<EventEntity> newItems) {
@@ -377,7 +580,7 @@ public class CalendarFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
             boolean isExpanded = expanded.contains(position);
-            holder.bind(items.get(position), listener, isExpanded, () -> {
+            holder.bind(items.get(position), listener, selectListener, isExpanded, () -> {
                 if (isExpanded) {
                     expanded.remove(position);
                 } else {
@@ -404,6 +607,7 @@ public class CalendarFragment extends Fragment {
         private final View btnEdit;
         private final View btnDelete;
         private final View btnCheckIn;
+        private final CheckBox cbSelect;
         private final SimpleDateFormat fmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
         EventViewHolder(@NonNull View itemView) {
@@ -418,14 +622,38 @@ public class CalendarFragment extends Fragment {
             this.btnEdit = itemView.findViewById(R.id.btn_edit);
             this.btnDelete = itemView.findViewById(R.id.btn_delete);
             this.btnCheckIn = itemView.findViewById(R.id.btn_checkin);
+            this.cbSelect = itemView.findViewById(R.id.cb_select);
         }
 
-        void bind(EventEntity e, OnEventClickListener listener, boolean expanded, Runnable toggle) {
+        void bind(EventEntity e, OnEventClickListener listener, OnEventSelectListener selectListener, boolean expanded, Runnable toggle) {
             title.setText(e.title);
             String time = e.allDay ? "全天" :
                     fmt.format(new java.util.Date(e.startAt)) + " - " + fmt.format(new java.util.Date(e.endAt));
             subtitle.setText(time + (TextUtils.isEmpty(e.location) ? "" : (" · " + e.location)));
-            itemView.setOnClickListener(v -> toggle.run());
+            
+            // 根据分享模式显示/隐藏选择框
+            cbSelect.setVisibility(selectListener.isSharingMode() ? View.VISIBLE : View.GONE);
+            
+            // 设置选择框状态
+            boolean isSelected = selectListener.isEventSelected(e);
+            cbSelect.setChecked(isSelected);
+            
+            // 选择框点击事件
+            cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                selectListener.onEventSelect(e, isChecked);
+            });
+            
+            // 在分享模式下，点击整个项也可以切换选择状态
+            itemView.setOnClickListener(v -> {
+                if (selectListener.isSharingMode()) {
+                    boolean newState = !cbSelect.isChecked();
+                    cbSelect.setChecked(newState);
+                    selectListener.onEventSelect(e, newState);
+                } else {
+                    toggle.run();
+                }
+            });
+            
             int color = getCategoryColor(itemView.getContext(), e.category);
             colorBar.setBackgroundColor(color);
             if (e.allDay) {
