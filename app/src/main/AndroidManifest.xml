@@ -48,6 +48,10 @@
             android:exported="false"
             android:label="日程列表" />
         <activity
+            android:name=".ui.map.MapLocationActivity"
+            android:exported="false"
+            android:label="选择地点" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
