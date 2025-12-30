@@ -2,6 +2,7 @@ package com.backmo.scheduleassistant.ui.event;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,6 +25,7 @@ import com.backmo.scheduleassistant.R;
 import com.backmo.scheduleassistant.data.ScheduleRepository;
 import com.backmo.scheduleassistant.data.db.EventEntity;
 import com.backmo.scheduleassistant.reminder.EventReminderWorker;
+import com.backmo.scheduleassistant.ui.map.MapLocationActivity;
 import com.backmo.scheduleassistant.util.TimeParser;
 
 import java.text.SimpleDateFormat;
@@ -39,6 +41,7 @@ public class EventEditActivity extends AppCompatActivity {
     private Spinner spRemind;
     private RadioGroup rgChannel;
     private EditText etLocation;
+    private Button btnLocationMap;
     private EditText etNotes;
     private boolean isTimeAutoSet = false;
     private TextWatcher titleTextWatcher;
@@ -62,6 +65,7 @@ public class EventEditActivity extends AppCompatActivity {
         spRemind = findViewById(R.id.sp_remind_offset);
         rgChannel = findViewById(R.id.rg_remind_channel);
         etLocation = findViewById(R.id.et_location);
+        btnLocationMap = findViewById(R.id.btn_location_map);
         etNotes = findViewById(R.id.et_notes);
         Button btnCancel = findViewById(R.id.btn_cancel);
         Button btnSave = findViewById(R.id.btn_save);
@@ -157,6 +161,27 @@ public class EventEditActivity extends AppCompatActivity {
 
         btnCancel.setOnClickListener(v -> finish());
         btnSave.setOnClickListener(v -> saveEvent());
+        
+        // 地点地图按钮点击监听 - 打开地图选择
+        btnLocationMap.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MapLocationActivity.class);
+            String currentLocation = etLocation.getText().toString().trim();
+            if (!TextUtils.isEmpty(currentLocation)) {
+                intent.putExtra(MapLocationActivity.EXTRA_LOCATION, currentLocation);
+            }
+            startActivityForResult(intent, 100);
+        });
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
+            String location = data.getStringExtra(MapLocationActivity.EXTRA_RESULT);
+            if (!TextUtils.isEmpty(location)) {
+                etLocation.setText(location);
+            }
+        }
     }
     /**
      * 从标题中解析时间并设置
