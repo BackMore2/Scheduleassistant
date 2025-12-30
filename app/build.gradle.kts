@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.runtime)
     implementation(libs.room.runtime)
+    implementation(libs.androidx.work.runtime)
     annotationProcessor(libs.room.compiler)
     implementation(libs.work.runtime)
     testImplementation(libs.junit)
