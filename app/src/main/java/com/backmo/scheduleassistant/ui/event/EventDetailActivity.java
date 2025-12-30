@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -70,11 +71,90 @@ public class EventDetailActivity extends AppCompatActivity {
         btnClose.setOnClickListener(v -> finish());
         btnNavigate.setOnClickListener(v -> {
             if (location != null && !location.isEmpty()) {
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(location)));
-                mapIntent.setPackage("com.google.android.apps.maps");
-                startActivity(mapIntent);
+                openMapNavigation(location);
+            } else {
+                Toast.makeText(this, "该日程没有设置地点", Toast.LENGTH_SHORT).show();
             }
         });
+        
+        // 地点文本也可以点击导航
+        tvLocation.setOnClickListener(v -> {
+            if (location != null && !location.isEmpty()) {
+                openMapNavigation(location);
+            }
+        });
+    }
+    
+    /**
+     * 打开地图应用进行导航
+     * 支持高德地图、百度地图、腾讯地图、Google Maps等
+     */
+    private void openMapNavigation(String location) {
+        Intent intent = null;
+        
+        // 优先尝试高德地图导航
+        try {
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("androidamap://route?sourceApplication=ScheduleAssistant&dname=" + 
+                Uri.encode(location) + "&dev=0&t=0"));
+            intent.setPackage("com.autonavi.minimap");
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+                return;
+            }
+        } catch (Exception e) {
+            // 高德地图未安装，继续尝试其他地图
+        }
+        
+        // 尝试百度地图导航
+        try {
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("baidumap://map/direction?destination=" + 
+                Uri.encode(location) + "&mode=driving&src=ScheduleAssistant"));
+            intent.setPackage("com.baidu.BaiduMap");
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+                return;
+            }
+        } catch (Exception e) {
+            // 百度地图未安装，继续尝试其他地图
+        }
+        
+        // 尝试腾讯地图导航
+        try {
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("qqmap://map/routeplan?type=drive&to=" + 
+                Uri.encode(location) + "&referer=ScheduleAssistant"));
+            intent.setPackage("com.tencent.map");
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+                return;
+            }
+        } catch (Exception e) {
+            // 腾讯地图未安装，继续尝试其他地图
+        }
+        
+        // 尝试Google Maps导航
+        try {
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("google.navigation:q=" + Uri.encode(location)));
+            intent.setPackage("com.google.android.apps.maps");
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+                return;
+            }
+        } catch (Exception e) {
+            // Google Maps未安装
+        }
+        
+        // 如果都没有安装，使用通用Intent（搜索地点）
+        intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("geo:0,0?q=" + Uri.encode(location)));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "未找到可用的地图应用，请安装地图应用后重试", Toast.LENGTH_LONG).show();
+        }
     }
 }
 
