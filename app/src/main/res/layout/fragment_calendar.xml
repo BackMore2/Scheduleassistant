@@ -109,4 +109,60 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- 分享模式底部栏 -->
+    <LinearLayout
+        android:id="@+id/share_bottom_bar"
+        android:orientation="horizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/purple_500"
+        android:padding="16dp"
+        android:visibility="gone">
+        
+        <TextView
+            android:id="@+id/tv_select_all"
+            android:text="全选"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:clickable="true"
+            android:focusable="true" />
+        
+        <TextView
+            android:id="@+id/tv_share_count"
+            android:text="已选 0 项"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+        
+        <Button
+            android:id="@+id/btn_cancel"
+            android:text="取消"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/white"
+            android:textColor="@color/purple_500"
+            android:textSize="16sp" />
+        
+        <Button
+            android:id="@+id/btn_export"
+            android:text="导出"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/white"
+            android:textColor="@color/purple_500"
+            android:textSize="16sp" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
