@@ -7,12 +7,14 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.backmo.scheduleassistant.data.dao.EventDao;
+import com.backmo.scheduleassistant.data.dao.HabitCheckInDao;
 import com.backmo.scheduleassistant.data.dao.HabitDao;
 
-@Database(entities = {EventEntity.class, HabitEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {EventEntity.class, HabitEntity.class, HabitCheckInEntity.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract EventDao eventDao();
     public abstract HabitDao habitDao();
+    public abstract HabitCheckInDao habitCheckInDao();
 
     private static volatile AppDatabase INSTANCE;
 

@@ -5,24 +5,29 @@ import android.content.Context;
 import androidx.lifecycle.LiveData;
 
 import com.backmo.scheduleassistant.data.dao.EventDao;
+import com.backmo.scheduleassistant.data.dao.HabitCheckInDao;
 import com.backmo.scheduleassistant.data.dao.HabitDao;
 import com.backmo.scheduleassistant.data.db.AppDatabase;
 import com.backmo.scheduleassistant.data.db.EventEntity;
+import com.backmo.scheduleassistant.data.db.HabitCheckInEntity;
 import com.backmo.scheduleassistant.data.db.HabitEntity;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class ScheduleRepository {
     private final EventDao eventDao;
     private final HabitDao habitDao;
+    private final HabitCheckInDao habitCheckInDao;
     private final ExecutorService io;
 
     public ScheduleRepository(Context context) {
         AppDatabase db = AppDatabase.getInstance(context);
         this.eventDao = db.eventDao();
         this.habitDao = db.habitDao();
+        this.habitCheckInDao = db.habitCheckInDao();
         this.io = Executors.newSingleThreadExecutor();
     }
 
@@ -90,7 +95,36 @@ public class ScheduleRepository {
             }
             h.lastCheckInDate = now;
             habitDao.update(h);
+
+            // 插入打卡记录
+            HabitCheckInEntity checkIn = new HabitCheckInEntity();
+            checkIn.habitId = id;
+            checkIn.dayStart = todayStart;
+            checkIn.checkedAt = now;
+            habitCheckInDao.insert(checkIn);
         });
+    }
+
+    public void getHabitCheckInsBetweenCount(long habitId, long start, long end, Consumer<Integer> callback) {
+        io.execute(() -> {
+            int count = habitCheckInDao.countForHabitBetweenSync(habitId, start, end);
+            if (callback != null) {
+                callback.accept(count);
+            }
+        });
+    }
+
+    public void getHabitTotalCheckIns(long habitId, Consumer<Integer> callback) {
+        io.execute(() -> {
+            int count = habitCheckInDao.countForHabitSync(habitId);
+            if (callback != null) {
+                callback.accept(count);
+            }
+        });
+    }
+
+    public LiveData<List<HabitCheckInEntity>> getHabitCheckInsBetween(long start, long end) {
+        return habitCheckInDao.getBetween(start, end);
     }
 
     private long getStartOfDay(long ts) {
