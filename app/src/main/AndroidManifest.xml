@@ -28,6 +28,14 @@
             android:exported="false"
             android:label="习惯列表" />
         <activity
+            android:name=".ui.habit.HabitStatsActivity"
+            android:exported="false"
+            android:label="习惯统计" />
+        <activity
+            android:name=".ui.week.HabitWeekActivity"
+            android:exported="false"
+            android:label="习惯周视图" />
+        <activity
             android:name=".ui.smart.SmartPlanActivity"
             android:exported="false"
             android:label="智能规划" />

@@ -2,6 +2,8 @@ package com.backmo.scheduleassistant.ui.habit;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,6 +34,10 @@ public class HabitListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_habit_list);
+        
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        
         repository = new ScheduleRepository(this);
         RecyclerView rv = findViewById(R.id.rv_habits);
         rv.setLayoutManager(new LinearLayoutManager(this));
@@ -51,6 +57,25 @@ public class HabitListActivity extends AppCompatActivity {
         });
         rv.setAdapter(adapter);
         repository.getAllHabits().observe(this, habits -> adapter.setItems(habits));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 1, 0, "统计");
+        menu.add(0, 2, 0, "周视图");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == 1) {
+            startActivity(new android.content.Intent(this, HabitStatsActivity.class));
+            return true;
+        } else if (item.getItemId() == 2) {
+            startActivity(new android.content.Intent(this, com.backmo.scheduleassistant.ui.week.HabitWeekActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private long getStartOfDay(long ts) {
