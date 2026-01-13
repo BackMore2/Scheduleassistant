@@ -6,7 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import com.google.android.material.button.MaterialButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,7 +35,7 @@ public class HabitListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_habit_list);
         
-        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         
         repository = new ScheduleRepository(this);
@@ -128,9 +128,9 @@ public class HabitListActivity extends AppCompatActivity {
     private static class HabitViewHolder extends RecyclerView.ViewHolder {
         private final TextView title;
         private final TextView subtitle;
-        private final Button btnCheckIn;
-        private final Button btnEdit;
-        private final Button btnDelete;
+        private final MaterialButton btnCheckIn;
+        private final MaterialButton btnEdit;
+        private final MaterialButton btnDelete;
         private final SimpleDateFormat fmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
         HabitViewHolder(@NonNull View itemView) {

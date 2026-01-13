@@ -1,82 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:animateLayoutChanges="true">
     <LinearLayout
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="24dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true">
 
         <TextView
             android:text="新建习惯"
             android:textStyle="bold"
-            android:textSize="18sp"
+            android:textSize="24sp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:textColor="@color/on_surface" />
 
-        <EditText
-            android:id="@+id/et_name"
-            android:hint="习惯名称"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:shapeAppearance="@style/ShapeAppearance.ScheduleAssistant.MediumComponent"
+            app:boxBackgroundColor="@color/surface"
+            app:hintTextColor="@color/on_surface_variant">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_name"
+                android:hint="习惯名称"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/on_surface"
+                android:textColorHint="@color/on_surface_variant" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_time"
             android:text="提醒时间"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.App.Button.Outlined"
+            app:rippleColor="@color/primary"
+            app:shapeAppearance="@style/ShapeAppearance.ScheduleAssistant.MediumComponent" />
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical">
             <TextView
                 android:text="提醒"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical" />
+                android:layout_gravity="center_vertical"
+                android:textColor="@color/on_surface"
+                android:layout_marginEnd="16dp" />
             <Spinner
                 android:id="@+id/sp_remind_offset"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:background="@color/surface"
+                android:padding="8dp"
+                android:textColor="@color/on_surface"
+                app:backgroundTint="@color/surface" />
         </LinearLayout>
 
         <RadioGroup
             android:id="@+id/rg_remind_channel"
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
             <RadioButton
                 android:id="@+id/rb_notification"
                 android:text="通知提醒"
                 android:checked="true"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="@color/on_surface"
+                android:buttonTint="@color/primary" />
             <RadioButton
                 android:id="@+id/rb_alarm"
                 android:text="闹钟提醒"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:textColor="@color/on_surface"
+                android:buttonTint="@color/primary" />
         </RadioGroup>
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <Button
+            android:layout_height="wrap_content"
+>
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_cancel"
                 android:text="取消"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
-            <Button
+                android:layout_weight="1"
+                style="@style/Widget.App.Button.Outlined"
+                app:rippleColor="@color/error"
+                app:shapeAppearance="@style/ShapeAppearance.ScheduleAssistant.MediumComponent" />
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_save"
                 android:text="完成"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                style="@style/Widget.App.Button"
+                app:rippleColor="@color/on_primary"
+                app:shapeAppearance="@style/ShapeAppearance.ScheduleAssistant.MediumComponent" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -3,7 +3,7 @@ package com.backmo.scheduleassistant.ui.habit;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.widget.Button;
+import com.google.android.material.button.MaterialButton;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -19,7 +19,7 @@ import java.util.Calendar;
 
 public class HabitEditActivity extends AppCompatActivity {
     private EditText etName;
-    private Button btnTime;
+    private MaterialButton btnTime;
     private Spinner spRemind;
     private RadioGroup rgChannel;
     private final Calendar timeCal = Calendar.getInstance();
@@ -34,8 +34,8 @@ public class HabitEditActivity extends AppCompatActivity {
         btnTime = findViewById(R.id.btn_time);
         spRemind = findViewById(R.id.sp_remind_offset);
         rgChannel = findViewById(R.id.rg_remind_channel);
-        Button btnCancel = findViewById(R.id.btn_cancel);
-        Button btnSave = findViewById(R.id.btn_save);
+        MaterialButton btnCancel = findViewById(R.id.btn_cancel);
+        MaterialButton btnSave = findViewById(R.id.btn_save);
 
         initRemindSpinner();
         updateTimeButton();

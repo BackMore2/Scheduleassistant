@@ -4,6 +4,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -62,7 +64,19 @@ public class EventReminderWorker extends Worker {
             android.app.PendingIntent navPi = android.app.PendingIntent.getActivity(getApplicationContext(), notifId + 3, nav, android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
             builder.addAction(0, "导航", navPi);
         }
-        NotificationManagerCompat.from(getApplicationContext()).notify(notifId, builder.build());
+        /**
+         * 发送通知（包含权限检查）
+         */
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (getApplicationContext().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    NotificationManagerCompat.from(getApplicationContext()).notify(notifId, builder.build());
+                }
+            } else {
+                NotificationManagerCompat.from(getApplicationContext()).notify(notifId, builder.build());
+            }
+        } catch (SecurityException ignored) {
+        }
         return Result.success();
     }
 

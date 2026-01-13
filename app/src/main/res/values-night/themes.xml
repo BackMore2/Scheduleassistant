@@ -1,6 +1,0 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.ScheduleAssistant" parent="Theme.Material3.Light.NoActionBar">
-        <item name="android:windowBackground">@android:color/white</item>
-        <item name="android:textColor">@android:color/black</item>
-    </style>
-</resources>

@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     tools:context=".MainActivity">
 
     <FrameLayout
@@ -27,6 +28,12 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="80dp" />
+        android:layout_marginBottom="80dp"
+        app:fabSize="normal"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ScheduleAssistant.FAB"
+        app:rippleColor="@color/on_primary"
+        android:elevation="8dp"
+        android:translationZ="8dp"
+        app:behavior_autoHide="false" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

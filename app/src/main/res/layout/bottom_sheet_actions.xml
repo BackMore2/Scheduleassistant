@@ -5,28 +5,52 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <Button
+    <!--
+        /**
+         * 新建日程
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_new_event"
-        android:text="新建日程"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="新建日程" />
 
-    <Button
+    <!--
+        /**
+         * 新建习惯
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_new_habit"
-        android:text="新建习惯"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="新建习惯" />
 
-    <Button
+    <!--
+        /**
+         * 从剪贴板导入
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_import_clipboard"
-        android:text="从剪贴板导入"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="从剪贴板导入" />
 
-    <Button
+    <!--
+        /**
+         * 智能规划
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_smart_plan"
-        android:text="智能规划"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="智能规划" />
 
 </LinearLayout>

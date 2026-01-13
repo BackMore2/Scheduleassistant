@@ -21,15 +21,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <EditText
-        android:id="@+id/et_location_search"
-        android:hint="输入地点名称"
-        android:layout_marginBottom="16dp"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
-        android:clickable="true"
-        android:focusable="true" />
+        android:layout_marginBottom="16dp">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_location_search"
+            android:hint="输入地点名称"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:clickable="true"
+            android:focusable="true" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:id="@+id/tv_current_location"
@@ -45,14 +49,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp">
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_search"
             android:text="在地图中搜索"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp" />
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_confirm"
             android:text="确认"
             android:layout_width="0dp"
@@ -60,15 +64,21 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_check_maps"
         android:text="检查可用地图应用"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp" />
 
+    <WebView
+        android:id="@+id/web_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
     <TextView
-        android:text="提示：点击输入框或搜索按钮可以打开地图应用进行地点搜索和选择"
+        android:text="提示：支持轻量版地图显示，定位与搜索结果可在地图中标注"
         android:textSize="12sp"
         android:textColor="#999999"
         android:layout_marginTop="16dp"

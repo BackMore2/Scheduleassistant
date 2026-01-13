@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>ScheduleAssistant Map</title>
+  <style>
+    html, body, #container { width: 100%; height: 100%; margin: 0; padding: 0; }
+  </style>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=110f7126707a57838e767b1de78d8096"></script>
+</head>
+<body>
+  <div id="container"></div>
+  <script>
+    var map = new AMap.Map('container', {
+      zoom: 12,
+      center: [116.397428, 39.90923],
+      viewMode: '2D'
+    });
+
+    function setCenter(lat, lng, zoom) {
+      try {
+        var z = zoom || 16;
+        map.setZoomAndCenter(z, [lng, lat]);
+      } catch (e) {}
+    }
+
+    function addMarker(lat, lng, title, snippet) {
+      try {
+        var marker = new AMap.Marker({
+          position: [lng, lat],
+          title: title || '',
+        });
+        marker.setMap(map);
+      } catch (e) {}
+    }
+
+    window.setCenter = setCenter;
+    window.addMarker = addMarker;
+  </script>
+</body>
+</html>

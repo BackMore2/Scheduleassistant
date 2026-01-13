@@ -1,7 +1,7 @@
 package com.backmo.scheduleassistant.ui.week;
 
 import android.os.Bundle;
-import android.widget.Button;
+import com.google.android.material.button.MaterialButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,9 +52,9 @@ public class HabitWeekActivity extends AppCompatActivity {
         repository = new ScheduleRepository(this);
 
         tvTitle = findViewById(R.id.tv_week_title);
-        Button btnPrev = findViewById(R.id.btn_prev_week);
-        Button btnToday = findViewById(R.id.btn_this_week);
-        Button btnNext = findViewById(R.id.btn_next_week);
+        MaterialButton btnPrev = findViewById(R.id.btn_prev_week);
+        MaterialButton btnToday = findViewById(R.id.btn_this_week);
+        MaterialButton btnNext = findViewById(R.id.btn_next_week);
 
         RecyclerView rv = findViewById(R.id.rv_habit_week);
         rv.setLayoutManager(new LinearLayoutManager(this));

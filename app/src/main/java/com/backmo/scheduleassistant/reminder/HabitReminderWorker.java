@@ -4,6 +4,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -35,7 +37,19 @@ public class HabitReminderWorker extends Worker {
                 .setContentText(name != null ? name : "")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true);
-        NotificationManagerCompat.from(getApplicationContext()).notify((int) System.currentTimeMillis(), builder.build());
+        /**
+         * 发送通知（包含权限检查）
+         */
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (getApplicationContext().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    NotificationManagerCompat.from(getApplicationContext()).notify((int) System.currentTimeMillis(), builder.build());
+                }
+            } else {
+                NotificationManagerCompat.from(getApplicationContext()).notify((int) System.currentTimeMillis(), builder.build());
+            }
+        } catch (SecurityException ignored) {
+        }
         return Result.success();
     }
 
@@ -47,4 +61,3 @@ public class HabitReminderWorker extends Worker {
         }
     }
 }
-

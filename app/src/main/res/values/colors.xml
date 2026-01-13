@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- MD3 主题颜色 -->
+    <color name="primary">#FF1E88E5</color>
+    <color name="primary_container">#FFD7EBFF</color>
+    <color name="primary_container_dark">#FF1565C0</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="on_primary_container">#FF002F65</color>
+    <color name="on_primary_container_dark">#FFD7EBFF</color>
+    <color name="secondary">#FF1976D2</color>
+    <color name="secondary_container">#FFCBE7FF</color>
+    <color name="secondary_container_dark">#FF0D47A1</color>
+    <color name="on_secondary">#FFFFFFFF</color>
+    <color name="on_secondary_container">#FF002E4D</color>
+    <color name="on_secondary_container_dark">#FFCBE7FF</color>
+    <color name="tertiary">#FF00ACC1</color>
+    <color name="tertiary_container">#FFB2EBF2</color>
+    <color name="tertiary_container_dark">#FF00838F</color>
+    <color name="on_tertiary">#FFFFFFFF</color>
+    <color name="on_tertiary_container">#FF002022</color>
+    <color name="on_tertiary_container_dark">#FFB2EBF2</color>
+    
+    <!-- MD3 中性颜色 -->
+    <color name="background">#FFFFFFFF</color>
+    <color name="background_dark">#0F172A</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="surface_dark">#1E293B</color>
+    <color name="surface_variant">#F1F5F9</color>
+    <color name="surface_variant_dark">#334155</color>
+    <color name="on_background">#1E293B</color>
+    <color name="on_background_dark">#F1F5F9</color>
+    <color name="on_surface">#1E293B</color>
+    <color name="on_surface_dark">#F1F5F9</color>
+    <color name="on_surface_variant">#64748B</color>
+    <color name="on_surface_variant_dark">#CBD5E1</color>
+    <color name="outline">#94A3B8</color>
+    <color name="outline_dark">#94A3B8</color>
+    <color name="outline_variant">#CBD5E1</color>
+    <color name="outline_variant_dark">#475569</color>
+    
+    <!-- MD3 功能颜色 -->
+    <color name="error">#FFEF4444</color>
+    <color name="error_container">#FEE2E2</color>
+    <color name="error_container_dark">#DC2626</color>
+    <color name="on_error">#FFFFFFFF</color>
+    <color name="on_error_container">#7F1D1D</color>
+    <color name="on_error_container_dark">#FEE2E2</color>
+    
+    <!-- 其他颜色 -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="purple_500">#FF9C27B0</color>
+    <color name="purple_500">#FF6366F1</color>
+    <color name="success">#FF10B981</color>
+    <color name="warning">#FFF59E0B</color>
 </resources>

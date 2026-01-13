@@ -6,7 +6,11 @@
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
     app:cardUseCompatPadding="true"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardBackgroundColor="@color/surface"
+    app:cardElevation="2dp"
+    app:cardMaxElevation="4dp"
+    android:stateListAnimator="@anim/selector_card_elevation"
+    android:transitionName="event_item">
 
     <LinearLayout
         android:orientation="horizontal"
@@ -20,14 +24,16 @@
             android:layout_height="24dp"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="12dp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:buttonTint="@color/primary" />
 
         <View
             android:id="@+id/color_bar"
             android:layout_width="6dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="12dp"
-            android:background="?attr/colorPrimary" />
+            android:background="?attr/colorPrimary" 
+            android:transitionName="event_color_bar"/>
 
         <LinearLayout
             android:orientation="vertical"
@@ -39,16 +45,18 @@
                 android:id="@+id/tv_title"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"
+                android:textColor="@color/on_surface"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" 
+                android:transitionName="event_title"/>
 
             <TextView
                 android:id="@+id/tv_meta"
                 android:textSize="13sp"
-                android:textColor="@android:color/black"
+                android:textColor="@color/on_surface_variant"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" 
+                android:transitionName="event_meta"/>
 
             <TextView
                 android:id="@+id/tv_badge"
@@ -62,7 +70,8 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/event_badge_bg"
                 android:textColor="@android:color/white"
-                android:visibility="gone"/>
+                android:visibility="gone"
+                android:transitionName="event_badge"/>
 
             <LinearLayout
                 android:id="@+id/expand_container"
@@ -70,47 +79,56 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                android:paddingTop="8dp">
+                android:paddingTop="8dp"
+                android:animateLayoutChanges="true">
 
                 <TextView
                     android:id="@+id/tv_notes"
                     android:textSize="13sp"
-                    android:textColor="?android:attr/textColorSecondary"
+                    android:textColor="@color/on_surface_variant"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/tv_repeat"
                     android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary"
+                    android:textColor="@color/on_surface_variant"
                     android:layout_marginTop="4dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_checkin"
                     android:text="打卡"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_marginTop="8dp"/>
 
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp">
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_edit"
                         android:text="编辑"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"/>
-                    <Button
+                        android:layout_weight="1"
+                        style="@style/Widget.App.Button.Text"
+                        android:textColor="@color/primary"
+                        app:rippleColor="@color/primary"/>
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_delete"
                         android:text="删除"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"/>
+                        android:layout_weight="1"
+                        style="@style/Widget.App.Button.Text"
+                        android:textColor="@color/error"
+                        app:rippleColor="@color/error"/>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -120,7 +138,9 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="center_vertical"
-            android:tint="?attr/colorPrimary"
-            android:contentDescription="更多"/>
+            app:tint="?attr/colorPrimary"
+            android:contentDescription="更多"
+            android:transitionName="event_chevron"
+            android:layout_marginStart="8dp"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

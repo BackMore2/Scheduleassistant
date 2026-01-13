@@ -5,40 +5,76 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <Button
+    <!--
+        /**
+         * 跳转日期
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_jump"
-        android:text="跳转日期"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="跳转日期" />
 
-    <Button
+    <!--
+        /**
+         * 周视图
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_week"
-        android:text="周视图"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="周视图" />
 
-    <Button
+    <!--
+        /**
+         * 搜索日程
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_search"
-        android:text="搜索日程"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="搜索日程" />
 
-    <Button
+    <!--
+        /**
+         * 习惯列表
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_habits"
-        android:text="习惯列表"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="习惯列表" />
 
-    <Button
+    <!--
+        /**
+         * 日程列表
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_events"
-        android:text="日程列表"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="日程列表" />
 
-    <Button
+    <!--
+        /**
+         * 分享日程
+         */
+    -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_share"
-        android:text="分享日程"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="分享日程" />
 
 </LinearLayout>

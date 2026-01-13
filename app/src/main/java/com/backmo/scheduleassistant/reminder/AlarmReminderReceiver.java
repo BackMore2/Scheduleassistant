@@ -7,6 +7,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -33,7 +35,19 @@ public class AlarmReminderReceiver extends BroadcastReceiver {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setAutoCancel(true)
                 .setFullScreenIntent(fullScreen, true);
-        NotificationManagerCompat.from(context).notify(notifId, builder.build());
+        /**
+         * 发送通知（包含权限检查）
+         */
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    NotificationManagerCompat.from(context).notify(notifId, builder.build());
+                }
+            } else {
+                NotificationManagerCompat.from(context).notify(notifId, builder.build());
+            }
+        } catch (SecurityException ignored) {
+        }
     }
 
     private void createChannel(Context c) {
@@ -44,4 +58,3 @@ public class AlarmReminderReceiver extends BroadcastReceiver {
         }
     }
 }
-

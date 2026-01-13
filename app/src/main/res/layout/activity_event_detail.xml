@@ -29,13 +29,13 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_edit"
                 android:text="编辑"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_delete"
                 android:text="删除"
                 android:layout_width="0dp"
@@ -47,13 +47,13 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_snooze"
                 android:text="稍后提醒"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_close"
                 android:text="关闭"
                 android:layout_width="0dp"
@@ -61,7 +61,7 @@
                 android:layout_weight="1" />
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_navigate"
             android:text="导航到地点"
             android:layout_width="match_parent"
