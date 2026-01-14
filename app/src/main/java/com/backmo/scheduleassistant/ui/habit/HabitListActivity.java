@@ -42,18 +42,7 @@ public class HabitListActivity extends AppCompatActivity {
         RecyclerView rv = findViewById(R.id.rv_habits);
         rv.setLayoutManager(new LinearLayoutManager(this));
         adapter = new HabitAdapter(new ArrayList<>(), h -> {
-            long today = getStartOfDay(System.currentTimeMillis());
-            Calendar last = Calendar.getInstance();
-            last.setTimeInMillis(h.lastCheckInDate);
-            long lastDay = getStartOfDay(h.lastCheckInDate);
-            long yesterday = today - 24L * 60 * 60 * 1000;
-            if (lastDay == yesterday) {
-                h.streak += 1;
-            } else if (lastDay != today) {
-                h.streak = 1;
-            }
-            h.lastCheckInDate = System.currentTimeMillis();
-            repository.updateHabit(h);
+            repository.checkInHabitById(h.id);
         });
         rv.setAdapter(adapter);
         repository.getAllHabits().observe(this, habits -> adapter.setItems(habits));
@@ -78,15 +67,6 @@ public class HabitListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private long getStartOfDay(long ts) {
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(ts);
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        return c.getTimeInMillis();
-    }
 
     private static class HabitAdapter extends RecyclerView.Adapter<HabitViewHolder> {
         private final List<HabitEntity> items;

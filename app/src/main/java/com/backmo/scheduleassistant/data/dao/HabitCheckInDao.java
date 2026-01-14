@@ -22,6 +22,12 @@ public interface HabitCheckInDao {
     @Query("SELECT * FROM habit_checkins WHERE dayStart >= :start AND dayStart < :end")
     LiveData<List<HabitCheckInEntity>> getBetween(long start, long end);
 
+    @Query("SELECT * FROM habit_checkins WHERE habitId = :habitId AND dayStart >= :start AND dayStart < :end")
+    LiveData<List<HabitCheckInEntity>> getForHabitBetween(long habitId, long start, long end);
+
+    @Query("SELECT * FROM habit_checkins WHERE habitId = :habitId AND dayStart >= :start AND dayStart < :end ORDER BY dayStart ASC")
+    LiveData<List<HabitCheckInEntity>> getForHabitBetweenAsc(long habitId, long start, long end);
+
     @Query("SELECT COUNT(*) FROM habit_checkins WHERE habitId = :habitId")
     int countForHabitSync(long habitId);
 

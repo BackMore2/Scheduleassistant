@@ -127,6 +127,14 @@ public class ScheduleRepository {
         return habitCheckInDao.getBetween(start, end);
     }
 
+    public LiveData<List<HabitCheckInEntity>> getHabitCheckInsForHabitBetween(long habitId, long start, long end) {
+        return habitCheckInDao.getForHabitBetween(habitId, start, end);
+    }
+
+    public LiveData<List<HabitCheckInEntity>> getHabitCheckInsForHabitBetweenAsc(long habitId, long start, long end) {
+        return habitCheckInDao.getForHabitBetweenAsc(habitId, start, end);
+    }
+
     private long getStartOfDay(long ts) {
         java.util.Calendar c = java.util.Calendar.getInstance();
         c.setTimeInMillis(ts);
