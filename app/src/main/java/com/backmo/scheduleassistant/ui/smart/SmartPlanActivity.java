@@ -26,6 +26,13 @@ import com.backmo.scheduleassistant.R;
 import com.backmo.scheduleassistant.data.ScheduleRepository;
 import com.backmo.scheduleassistant.data.db.EventEntity;
 import com.backmo.scheduleassistant.ui.map.MapLocationActivity;
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.poisearch.PoiResult;
+import com.amap.api.services.poisearch.PoiSearch;
+import com.amap.api.services.route.DrivePath;
+import com.amap.api.services.route.DriveRouteResult;
+import com.amap.api.services.route.RouteSearch;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -72,6 +79,8 @@ public class SmartPlanActivity extends AppCompatActivity {
     private List<PlanItem> generatedPlan;
     private EventsAdapter eventsAdapter;
     private ScheduleRepository repository;
+    private List<LatLonPoint> resolvedPoints;
+    private int[][] travelTimeMatrix;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -278,40 +287,205 @@ public class SmartPlanActivity extends AppCompatActivity {
             Toast.makeText(this, "请先添加事件", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // 清空之前的计划
         generatedPlan.clear();
+        resolvedPoints = new ArrayList<>();
+        travelTimeMatrix = null;
+        resolveLocationsSequentially(0);
+    }
 
-        // 复制原始计划项
-        List<PlanItem> tempItems = new ArrayList<>(planItems);
+    private void resolveLocationsSequentially(int index) {
+        if (index >= planItems.size()) {
+            buildTravelMatrixSequentially(0, 0);
+            return;
+        }
+        PlanItem item = planItems.get(index);
+        PoiSearch.Query query = new PoiSearch.Query(item.location, "", null);
+        query.setPageSize(1);
+        query.setPageNum(1);
+        try {
+            PoiSearch poiSearch = new PoiSearch(this, query);
+            poiSearch.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
+                @Override
+                public void onPoiSearched(PoiResult result, int rCode) {
+                    LatLonPoint p = null;
+                    if (result != null && result.getPois() != null && !result.getPois().isEmpty()) {
+                        PoiItem poi = result.getPois().get(0);
+                        p = poi.getLatLonPoint();
+                    }
+                    if (p == null) {
+                        Toast.makeText(SmartPlanActivity.this, "无法解析地点: " + item.location, Toast.LENGTH_SHORT).show();
+                        resolvedPoints.add(new LatLonPoint(0, 0));
+                    } else {
+                        resolvedPoints.add(p);
+                    }
+                    resolveLocationsSequentially(index + 1);
+                }
+                @Override
+                public void onPoiItemSearched(PoiItem poiItem, int i) {}
+            });
+            poiSearch.searchPOIAsyn();
+        } catch (Exception e) {
+            Toast.makeText(SmartPlanActivity.this, "地点解析失败: " + item.location, Toast.LENGTH_SHORT).show();
+            resolvedPoints.add(new LatLonPoint(0, 0));
+            resolveLocationsSequentially(index + 1);
+        }
+    }
 
-        // 实现智能排序算法
-        // 1. 识别主要地点（出现次数最多的地点）
-        String mainLocation = identifyMainLocation(tempItems);
-        
-        // 2. 根据地点相关性排序
-        List<PlanItem> sortedItems = smartSortByLocation(tempItems, mainLocation);
+    private void buildTravelMatrixSequentially(int i, int j) {
+        int n = planItems.size();
+        if (travelTimeMatrix == null) {
+            travelTimeMatrix = new int[n][n];
+        }
+        if (i >= n) {
+            computeBestOrderAndGenerate();
+            return;
+        }
+        if (j >= n) {
+            buildTravelMatrixSequentially(i + 1, 0);
+            return;
+        }
+        if (i == j) {
+            travelTimeMatrix[i][j] = 0;
+            buildTravelMatrixSequentially(i, j + 1);
+            return;
+        }
+        try {
+            RouteSearch routeSearch = new RouteSearch(this);
+            RouteSearch.FromAndTo ft = new RouteSearch.FromAndTo(
+                    new com.amap.api.services.core.LatLonPoint(resolvedPoints.get(i).getLatitude(), resolvedPoints.get(i).getLongitude()),
+                    new com.amap.api.services.core.LatLonPoint(resolvedPoints.get(j).getLatitude(), resolvedPoints.get(j).getLongitude()));
+            RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(
+                    ft, RouteSearch.DRIVING_MULTI_STRATEGY_FASTEST_SHORTEST_AVOID_CONGESTION, null, null, "");
+            routeSearch.setRouteSearchListener(new RouteSearch.OnRouteSearchListener() {
+                @Override
+                public void onDriveRouteSearched(DriveRouteResult driveRouteResult, int errorCode) {
+                    int minutes = 0;
+                    if (driveRouteResult != null && driveRouteResult.getPaths() != null && !driveRouteResult.getPaths().isEmpty()) {
+                        DrivePath path = driveRouteResult.getPaths().get(0);
+                        minutes = (int) Math.ceil(path.getDuration() / 60.0);
+                    }
+                    travelTimeMatrix[i][j] = minutes;
+                    buildTravelMatrixSequentially(i, j + 1);
+                }
+                @Override public void onBusRouteSearched(com.amap.api.services.route.BusRouteResult busRouteResult, int i1) {}
+                @Override public void onWalkRouteSearched(com.amap.api.services.route.WalkRouteResult walkRouteResult, int i1) {}
+                @Override public void onRideRouteSearched(com.amap.api.services.route.RideRouteResult rideRouteResult, int i1) {}
+            });
+            routeSearch.calculateDriveRouteAsyn(query);
+        } catch (Exception e) {
+            travelTimeMatrix[i][j] = 60;
+            buildTravelMatrixSequentially(i, j + 1);
+        }
+    }
 
-        // 设置默认开始时间（假设从早上9点开始）
+    private void computeBestOrderAndGenerate() {
+        int n = planItems.size();
+        if (n == 1) {
+            generatedPlan.clear();
+            generatedPlan.add(planItems.get(0));
+            recalcWithTravelTimes(new int[]{0});
+            return;
+        }
+        if (n > 9) {
+            List<Integer> order = greedyOrder();
+            int[] arr = new int[order.size()];
+            for (int k = 0; k < order.size(); k++) arr[k] = order.get(k);
+            recalcWithTravelTimes(arr);
+            return;
+        }
+        int[][] dp = new int[1 << n][n];
+        int[][] prev = new int[1 << n][n];
+        for (int[] row : dp) java.util.Arrays.fill(row, Integer.MAX_VALUE / 4);
+        dp[1][0] = 0;
+        for (int mask = 1; mask < (1 << n); mask++) {
+            for (int last = 0; last < n; last++) {
+                if ((mask & (1 << last)) == 0) continue;
+                int cur = dp[mask][last];
+                if (cur >= Integer.MAX_VALUE / 8) continue;
+                for (int nxt = 0; nxt < n; nxt++) {
+                    if ((mask & (1 << nxt)) != 0) continue;
+                    int cand = cur + travelTimeMatrix[last][nxt];
+                    int newMask = mask | (1 << nxt);
+                    if (cand < dp[newMask][nxt]) {
+                        dp[newMask][nxt] = cand;
+                        prev[newMask][nxt] = last;
+                    }
+                }
+            }
+        }
+        int full = (1 << n) - 1;
+        int bestLast = 0;
+        int best = Integer.MAX_VALUE;
+        for (int last = 0; last < n; last++) {
+            if (dp[full][last] < best) {
+                best = dp[full][last];
+                bestLast = last;
+            }
+        }
+        int[] order = new int[n];
+        int mask = full;
+        int idx = n - 1;
+        int cur = bestLast;
+        while (idx >= 0) {
+            order[idx] = cur;
+            int p = prev[mask][cur];
+            mask = mask ^ (1 << cur);
+            cur = p;
+            idx--;
+            if (mask == 0) break;
+        }
+        recalcWithTravelTimes(order);
+    }
+
+    private List<Integer> greedyOrder() {
+        int n = planItems.size();
+        java.util.List<Integer> order = new java.util.ArrayList<>();
+        boolean[] used = new boolean[n];
+        int cur = 0;
+        order.add(cur);
+        used[cur] = true;
+        for (int k = 1; k < n; k++) {
+            int best = -1;
+            int bestTime = Integer.MAX_VALUE;
+            for (int j = 0; j < n; j++) {
+                if (used[j]) continue;
+                int t = travelTimeMatrix[cur][j];
+                if (t < bestTime) {
+                    bestTime = t;
+                    best = j;
+                }
+            }
+            order.add(best);
+            used[best] = true;
+            cur = best;
+        }
+        return order;
+    }
+
+    private void recalcWithTravelTimes(int[] order) {
+        generatedPlan.clear();
+        for (int idx : order) {
+            PlanItem src = planItems.get(idx);
+            generatedPlan.add(new PlanItem(src.title, src.location, src.durationMinutes));
+        }
         Calendar startTime = Calendar.getInstance();
         startTime.setTimeInMillis(selectedDate.getTimeInMillis());
         startTime.set(Calendar.HOUR_OF_DAY, 9);
         startTime.set(Calendar.MINUTE, 0);
         startTime.set(Calendar.SECOND, 0);
-
-        // 生成计划
-        for (PlanItem item : sortedItems) {
-            PlanItem planItem = new PlanItem(item.title, item.location, item.durationMinutes);
-            planItem.startTime = startTime.getTimeInMillis();
+        for (int i = 0; i < generatedPlan.size(); i++) {
+            if (i > 0) {
+                int from = order[i - 1];
+                int to = order[i];
+                int travel = travelTimeMatrix[from][to];
+                startTime.add(Calendar.MINUTE, travel);
+            }
+            PlanItem item = generatedPlan.get(i);
+            item.startTime = startTime.getTimeInMillis();
             startTime.add(Calendar.MINUTE, item.durationMinutes);
-            planItem.endTime = startTime.getTimeInMillis();
-            generatedPlan.add(planItem);
+            item.endTime = startTime.getTimeInMillis();
         }
-
-        // 显示生成的计划
         planPreviewAdapter.notifyDataSetChanged();
-        
-        // 显示或隐藏空状态
         if (generatedPlan.isEmpty()) {
             tvPlanEmpty.setVisibility(View.VISIBLE);
             rvPlanPreview.setVisibility(View.GONE);
@@ -319,8 +493,6 @@ public class SmartPlanActivity extends AppCompatActivity {
             tvPlanEmpty.setVisibility(View.GONE);
             rvPlanPreview.setVisibility(View.VISIBLE);
         }
-
-        // 启用保存按钮
         btnSavePlan.setEnabled(true);
     }
     
@@ -388,14 +560,12 @@ public class SmartPlanActivity extends AppCompatActivity {
             return;
         }
         
-        // 设置默认开始时间（假设从早上9点开始）
         Calendar startTime = Calendar.getInstance();
         startTime.setTimeInMillis(selectedDate.getTimeInMillis());
         startTime.set(Calendar.HOUR_OF_DAY, 9);
         startTime.set(Calendar.MINUTE, 0);
         startTime.set(Calendar.SECOND, 0);
         
-        // 重新计算每个计划项的时间
         for (PlanItem item : generatedPlan) {
             item.startTime = startTime.getTimeInMillis();
             startTime.add(Calendar.MINUTE, item.durationMinutes);

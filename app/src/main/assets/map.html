@@ -7,36 +7,160 @@
   <style>
     html, body, #container { width: 100%; height: 100%; margin: 0; padding: 0; }
   </style>
-  <script src="https://webapi.amap.com/maps?v=2.0&key=110f7126707a57838e767b1de78d8096"></script>
+  <script>
+    window.disableWorker = true;
+    window.movingDraw = false;
+  </script>
+  <script>
+    window._AMapSecurityConfig = {
+      securityJsCode: '32181ca2534b4ad4bb30869ea96fc198'
+    };
+  </script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=c9f59fc51d9024f5a2dbd6fabe4ae21f"></script>
 </head>
 <body>
   <div id="container"></div>
   <script>
-    var map = new AMap.Map('container', {
-      zoom: 12,
-      center: [116.397428, 39.90923],
-      viewMode: '2D'
-    });
-
-    function setCenter(lat, lng, zoom) {
+    var map = null;
+    var tilesWatchTimer = null;
+    var lastView = null;
+    var lastMarkerData = null;
+    var reloadAttempts = 0;
+    /**
+     * 创建并初始化地图（2D模式，避免3D依赖）
+     */
+    function createMap(lat, lng, zoom) {
       try {
-        var z = zoom || 16;
-        map.setZoomAndCenter(z, [lng, lat]);
+        map = new AMap.Map('container', {
+          zoom: zoom || 12,
+          center: [lng, lat],
+          viewMode: '2D',
+          willReadFrequently: true
+        });
+        // 使用默认矢量底图，不叠加卫星或路网图层
+        try {
+          map.on('zoomend', function() {
+            try {
+              var c = map.getCenter();
+              lastView = { lat: c.getLat(), lng: c.getLng(), zoom: map.getZoom() };
+              scheduleTilesWatch();
+            } catch (e) {}
+          });
+          map.on('moveend', function() {
+            try {
+              var c = map.getCenter();
+              lastView = { lat: c.getLat(), lng: c.getLng(), zoom: map.getZoom() };
+            } catch (e) {}
+          });
+          map.on('tilesloaded', function() {
+            try {
+              if (tilesWatchTimer) { clearTimeout(tilesWatchTimer); tilesWatchTimer = null; }
+              reloadAttempts = 0;
+            } catch (e) {}
+          });
+        } catch (e) {}
+        try {
+          AMap.plugin(['AMap.Scale','AMap.ToolBar','AMap.ControlBar'], function() {
+            try {
+              var scale = new AMap.Scale({});
+              var toolbar = new AMap.ToolBar({});
+              var controlBar = new AMap.ControlBar({});
+              map.addControl(scale);
+              map.addControl(toolbar);
+              map.addControl(controlBar);
+            } catch (e) {}
+          });
+        } catch (e) {}
+        try {
+          window.addEventListener('resize', function() {
+            if (map && map.resize) {
+              map.resize();
+            }
+          });
+        } catch (e) {}
+        // 首次创建后启动瓦片监控
+        scheduleTilesWatch();
       } catch (e) {}
     }
 
+    /**
+     * 设置中心并根据需要触发瓦片监控
+     */
+    function setCenter(lat, lng, zoom) {
+      try {
+        var z = zoom || 16;
+        if (!map) {
+          createMap(lat, lng, z);
+        } else {
+          map.setZoomAndCenter(z, [lng, lat]);
+          try {
+            var c = map.getCenter();
+            lastView = { lat: c.getLat(), lng: c.getLng(), zoom: map.getZoom() };
+          } catch (e) {}
+          scheduleTilesWatch();
+        }
+      } catch (e) {}
+    }
+
+    /**
+     * 添加图钉到地图，并记录最后图钉数据
+     */
     function addMarker(lat, lng, title, snippet) {
       try {
+        if (!map) {
+          createMap(lat, lng, 16);
+        }
         var marker = new AMap.Marker({
           position: [lng, lat],
           title: title || '',
         });
         marker.setMap(map);
+        lastMarkerData = { lat: lat, lng: lng, title: title || '', snippet: snippet || '' };
       } catch (e) {}
     }
 
     window.setCenter = setCenter;
     window.addMarker = addMarker;
+    /**
+     * 手动触发一次瓦片监控（供原生调用）
+     */
+    function triggerTilesWatch() {
+      scheduleTilesWatch();
+    }
+    window.triggerTilesWatch = triggerTilesWatch;
+    /**
+     * 监控瓦片加载状态，如果超时则重建地图（指数回退，最多3次）
+     */
+    function scheduleTilesWatch() {
+      try {
+        if (tilesWatchTimer) clearTimeout(tilesWatchTimer);
+        tilesWatchTimer = setTimeout(function() {
+          try {
+            if (!lastView) return;
+            if (reloadAttempts >= 3) {
+              console.error('Tiles reload limit reached');
+              return;
+            }
+            reloadAttempts++;
+            console.warn('Tiles not loaded, reload attempt:', reloadAttempts);
+            var lv = lastView;
+            var keepZoom = lv.zoom || 16;
+            map.destroy();
+            map = null;
+            createMap(lv.lat, lv.lng, keepZoom);
+            if (lastMarkerData) {
+              addMarker(lastMarkerData.lat, lastMarkerData.lng, lastMarkerData.title, lastMarkerData.snippet);
+            }
+          } catch (e) {}
+        }, 2500);
+      } catch (e) {}
+    }
+    try {
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error('JS Error:', message, source, lineno, colno);
+      };
+    } catch (e) {}
+    // 矢量底图默认足够，无需额外图层
   </script>
 </body>
 </html>

@@ -64,21 +64,22 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_check_maps"
-        android:text="检查可用地图应用"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp" />
-
     <WebView
         android:id="@+id/web_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+
     <TextView
-        android:text="提示：支持轻量版地图显示，定位与搜索结果可在地图中标注"
+        android:text="提示：使用高德原生地图，支持定位与搜索标注"
         android:textSize="12sp"
         android:textColor="#999999"
         android:layout_marginTop="16dp"

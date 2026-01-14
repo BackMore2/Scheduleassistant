@@ -29,6 +29,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
 }
 
 dependencies {
@@ -50,6 +55,6 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    // 本地 AAR 条件引入（将 AAR 放入 app/libs 后自动生效）
+    // 本地 AAR 引入（模拟器专用 Lite3dMap）
     implementation(files("libs/Lite3dMap_1.3.2_AMapSearch_9.7.4_AMapLocation_6.5.1_20251020.aar"))
 }
